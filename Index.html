@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ToolStack</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#0f0f0f;
+  --card:#1b1b1b;
+  --text:#ffffff;
+  --muted:#aaa;
+  --accent:#4dabf7;
+}
+
+.light{
+  --bg:#eef1f5;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --accent:#2563eb;
+}
+
+body{
+  margin:0;
+  padding:90px 20px 60px;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* THEME */
+#themeToggle{
+  position:fixed;
+  top:16px;
+  right:16px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+  background:var(--card);
+  color:var(--text);
+}
+
+/* HEADER */
+header{text-align:center;margin-bottom:28px;}
+header h1{margin:0;font-size:32px;}
+header p{margin:6px 0 0;font-size:14px;color:var(--muted);}
+
+/* CONTROLS */
+.controls{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+input,select,button{
+  padding:10px 12px;
+  border-radius:8px;
+  border:none;
+}
+.light input,.light select{
+  background:#fff;
+  border:1px solid rgba(15,23,42,.15);
+}
+button{background:#444;color:#fff;cursor:pointer;}
+.light button{background:#2563eb;}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  padding:14px;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-height:140px;
+  position:relative;
+  transition:.25s;
+}
+.card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 14px 32px rgba(0,0,0,.35);
+}
+
+/* LIGHT MODE CARD FIX */
+.light .card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.08);
+  box-shadow:
+    0 1px 2px rgba(15,23,42,.05),
+    0 10px 24px rgba(15,23,42,.12);
+}
+
+/* TITLE */
+.title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  font-size:14.5px;
+  color:var(--accent);
+  text-decoration:none;
+}
+.favicon{
+  width:16px;
+  height:16px;
+  border-radius:4px;
+}
+
+/* CATEGORY */
+.badge{
+  align-self:flex-start;
+  font-size:11px;
+  padding:3px 10px;
+  border-radius:999px;
+  background:#2a2a2a;
+  color:#cfe6ff;
+}
+.light .badge{
+  background:#e5edff;
+  color:#1e3a8a;
+}
+
+/* DESCRIPTION */
+.desc{
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.35;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* STATUS */
+.status{
+  margin-top:auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+}
+.dot{width:8px;height:8px;border-radius:50%;}
+.working{background:#22c55e;}
+.broken{background:#ef4444;}
+.redirect{background:#facc15;}
+.unknown{background:#9ca3af;}
+
+/* FAVORITE */
+.star{
+  position:absolute;
+  top:12px;
+  right:12px;
+  font-size:18px;
+  cursor:pointer;
+  color:#777;
+}
+.star.active{color:#f59e0b;}
+
+/* FOOTER */
+footer{
+  margin-top:60px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+#aboutModal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  align-items:center;
+  justify-content:center;
+}
+#aboutBox{
+  background:var(--card);
+  padding:24px;
+  max-width:520px;
+  border-radius:14px;
+}
+#aboutBox button{
+  margin-top:16px;
+  background:var(--accent);
+}
+
+/* ======================================================
+   v7.8 APPEND-ONLY UI REFINEMENTS (SAFE OVERRIDES)
+   ====================================================== */
+
+/* Center + soften last updated */
+#lastUpdated{
+  text-align:center;
+  margin:12px 0 24px;
+  font-size:12px;
+  opacity:.85;
+}
+
+/* Light mode soft green background (non-breaking) */
+body.light{
+  background:#f0fdf4;
+}
+
+/* Slightly larger favicon */
+.favicon{
+  width:20px;
+  height:20px;
+  border-radius:6px;
+}
+
+/* Status pinned bottom-right */
+.card .status{
+  position:absolute;
+  right:14px;
+  bottom:12px;
+  font-size:11.5px;
+  color:var(--muted);
+}
+
+/* Clearer status dot */
+.dot{
+  width:9px;
+  height:9px;
+}
+
+/* Positive visual feedback for working */
+.card .working{
+  box-shadow:0 0 6px rgba(34,197,94,.5);
+}
+</style>
+</head>
+
+<body>
+
+<button id="themeToggle">🌙</button>
+
+<header>
+  <h1>ToolStack</h1>
+  <p>Explore curated tools with live status and smart categories.</p>
+</header>
+
+<div class="controls">
+  <input id="search" placeholder="Search tools…">
+  <select id="categoryFilter"><option value="all">All Categories</option></select>
+  <button id="clearBtn">Clear</button>
+  <button id="refreshBtn">↻</button>
+</div>
+
+<div id="lastUpdated"></div>
+
+<div class="section">
+  <h2>⭐ Favorites</h2>
+  <div id="favGrid" class="grid"></div>
+</div>
+
+<div class="section">
+  <h2>🕒 Recent</h2>
+  <div id="recentGrid" class="grid"></div>
+</div>
+
+<div class="section">
+  <h2>📦 All Tools</h2>
+  <div id="grid" class="grid"></div>
+</div>
+
+<footer class="site-footer">
+  <p>Developed by Murali | All Rights Reserved © 2025–26</p>
+  <p>Disclaimer: We are not responsible for any data loss, misuse, or external service changes.</p>
+  
+  <nav class="footer-links">
+    <a href="#" onclick="openAbout()">About· Credits · Disclaimer</a>
+  </nav>
+</footer>
+
+
+  <div id="aboutModal">
+  <div id="aboutBox">
+    <h3>About ToolStack</h3>
+    <p>ToolStack is a curated, read-only discovery platform that tracks live availability of tools.</p>
+    <p><b>Built & Maintained by Murali</b></p>
+    <p>Data sourced from public links. No ownership implied.</p>
+    <button onclick="closeAbout()">Close</button>
+  </div>
+</div>
+
+
+<script>
+  /* ---------- Popupscript ---------- */
+function openAbout() {
+  document.getElementById("aboutModal").style.display = "flex";
+}
+
+function closeAbout() {
+  document.getElementById("aboutModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
+
+  
+<script>
+const SHEET_URL =
+"https://docs.google.com/spreadsheets/d/1_lz8NoO69rbSpE0yyTgJaxy0erMFmcvK1L88P40JJlY/gviz/tq?gid=1452664636&tqx=out:json&tq=select * limit 1000";
+
+const CACHE_KEY="toolhub-data";
+
+/* ---------- CATEGORY ENGINE ---------- */
+const CATEGORY_RULES = [
+ {name:"AI",keywords:["ai","gpt","llm","chatbot","machine learning","assistant","prompt"]},
+ {name:"Image",keywords:["image","photo","design","avatar","illustration","figma","canva","art"]},
+ {name:"Video",keywords:["video","movie","animation","stream","loom","youtube","vimeo"]},
+ {name:"Audio",keywords:["audio","music","voice","speech","podcast","tts"]},
+ {name:"Productivity",keywords:["task","note","doc","pdf","workflow","notion","calendar","todo","manage","organize"]},
+ {name:"Developer",keywords:["api","sdk","code","github","developer","git","deploy","cloud","framework","vercel","netlify"]},
+ {name:"Learning",keywords:["learn","course","tutorial","guide","education","academy","school"]},
+ {name:"Directory",keywords:["directory","list","collection","catalog","resources","tools"]},
+ {name:"Community",keywords:["community","forum","discord","slack","chat","group"]},
+ {name:"Marketplace",keywords:["pricing","buy","store","marketplace","shop","billing"]},
+ {name:"Content",keywords:["blog","newsletter","writing","publish","substack","medium"]}
+];
+
+function normalizeUrl(u){
+  return u.startsWith("http") ? u : "https://" + u;
+}
+
+function guessCategorySmart(url, desc){
+  const norm = normalizeUrl(url);
+  let host = "", path = "";
+  try{
+    const u = new URL(norm);
+    host = u.hostname.replace(/^www\./,"");
+    path = u.pathname;
+  }catch{}
+  const text = (host + " " + path + " " + (desc || "")).toLowerCase();
+  let best = null, bestScore = 0;
+  CATEGORY_RULES.forEach(rule=>{
+    let score = 0;
+    rule.keywords.forEach(k=>{
+      if(host.includes(k)) score += 5;
+      else if(path.includes(k)) score += 3;
+      else if(text.includes(k)) score += 1;
+    });
+    if(score > bestScore){
+      bestScore = score;
+      best = rule.name;
+    }
+  });
+  return best || "Productivity";
+}
+
+/* ---------- THEME ---------- */
+const themeToggle=document.getElementById("themeToggle");
+if(localStorage.getItem("theme")==="light"){
+  document.body.classList.add("light");
+  themeToggle.textContent="☀️";
+}
+themeToggle.onclick=()=>{
+  document.body.classList.toggle("light");
+  const l=document.body.classList.contains("light");
+  localStorage.setItem("theme",l?"light":"dark");
+  themeToggle.textContent=l?"☀️":"🌙";
+};
+
+  /*---- Helpers----- */
+
+function updateHelpers(){
+ favHelper.textContent=favorites.length? "" : "⭐ Star tools to see them here";
+ recentHelper.textContent=recent.length? "" : "🕒 Tools you open appear here";
+}
+  
+/* ---------- DOM ---------- */
+const grid=document.getElementById("grid");
+const favGrid=document.getElementById("favGrid");
+const recentGrid=document.getElementById("recentGrid");
+const search=document.getElementById("search");
+const categoryFilter=document.getElementById("categoryFilter");
+const clearBtn=document.getElementById("clearBtn");
+const refreshBtn=document.getElementById("refreshBtn");
+
+let data=[];
+let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
+let recent=JSON.parse(localStorage.getItem("recent")||"[]");
+
+/* ---------- HELPERS ---------- */
+function titleFromUrl(u){
+ try{return new URL(normalizeUrl(u)).hostname.replace(/^www\./,"").split(".")[0].replace(/^\w/,c=>c.toUpperCase());}
+ catch{return "Link";}
+}
+function host(u){try{return new URL(normalizeUrl(u)).hostname;}catch{return "";}}
+
+/* ---------- LOAD ---------- */
+async function loadData(force=false){
+ const cached=sessionStorage.getItem(CACHE_KEY);
+ if(cached && !force){
+  data=JSON.parse(cached);
+  populateCategories();
+  render();
+  return;
+ }
+ const res=await fetch(SHEET_URL);
+ const txt=await res.text();
+ const json=JSON.parse(txt.substring(47).slice(0,-2));
+ const cols=json.table.cols.map(c=>c.label.toLowerCase());
+ const i={url:cols.indexOf("url"),desc:cols.indexOf("description"),label:cols.indexOf("status_label")};
+ data=json.table.rows.map(r=>{
+  const url=r.c[i.url]?.v||"";
+  const desc=r.c[i.desc]?.v||"";
+  return{url,desc,cat:guessCategorySmart(url,desc),label:r.c[i.label]?.v||"Unknown"};
+ }).filter(d=>d.url);
+ sessionStorage.setItem(CACHE_KEY,JSON.stringify(data));
+ populateCategories();
+ render();
+ document.getElementById("lastUpdated").textContent=
+  "Updated · " + new Date().toLocaleString();
+}
+
+/* ---------- CATEGORY FILTER ---------- */
+function populateCategories(){
+ const cats=[...new Set(data.map(d=>d.cat))].sort();
+ categoryFilter.innerHTML='<option value="all">All Categories</option>';
+ cats.forEach(c=>{
+  const o=document.createElement("option");
+  o.value=o.textContent=c;
+  categoryFilter.appendChild(o);
+ });
+}
+
+/* ---------- CARD ---------- */
+function createCard(t){
+ let dot="unknown";
+ const l=t.label.toLowerCase();
+ if(l.includes("working")) dot="working";
+ else if(l.includes("redirect")) dot="redirect";
+ else if(l.includes("blocked")||l.includes("not")) dot="broken";
+
+ const card=document.createElement("div");
+ card.className="card";
+ const fav=favorites.includes(t.url);
+
+ card.innerHTML=`
+  <span class="star ${fav?"active":""}">★</span>
+  <a class="title" href="${normalizeUrl(t.url)}" target="_blank">
+   <img class="favicon" src="https://www.google.com/s2/favicons?domain=${host(t.url)}">
+   ${titleFromUrl(t.url)}
+  </a>
+  <div class="badge">${t.cat}</div>
+  <div class="desc">${t.desc}</div>
+  <div class="status"><span class="dot ${dot}"></span>${t.label}</div>
+ `;
+
+ card.querySelector(".star").onclick=e=>{
+  e.stopPropagation();
+  fav?favorites=favorites.filter(f=>f!==t.url):favorites.push(t.url);
+  localStorage.setItem("favorites",JSON.stringify(favorites));
+  render();
+ };
+
+ card.querySelector(".title").onclick=()=>{
+  recent=recent.filter(r=>r!==t.url);
+  recent.unshift(t.url);
+  recent=recent.slice(0,5);
+  localStorage.setItem("recent",JSON.stringify(recent));
+  render();
+ };
+
+ return card;
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+ grid.innerHTML=favGrid.innerHTML=recentGrid.innerHTML="";
+ const q=search.value.toLowerCase();
+ const c=categoryFilter.value;
+
+ const filtered=data.filter(t=>{
+  if(q && !t.url.toLowerCase().includes(q) && !t.desc.toLowerCase().includes(q)) return false;
+  if(c!=="all" && t.cat!==c) return false;
+  return true;
+ });
+
+ filtered.filter(t=>favorites.includes(t.url)).forEach(t=>favGrid.appendChild(createCard(t)));
+ recent.map(r=>filtered.find(t=>t.url===r)).filter(Boolean).forEach(t=>recentGrid.appendChild(createCard(t)));
+ filtered.forEach(t=>grid.appendChild(createCard(t)));
+}
+
+search.oninput=render;
+categoryFilter.onchange=render;
+clearBtn.onclick=()=>{search.value="";categoryFilter.value="all";render();}
+refreshBtn.onclick=()=>{sessionStorage.removeItem(CACHE_KEY);loadData(true);};
+
+loadData();
+
+</script>
+
+</body>
+</html>
